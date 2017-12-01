@@ -1,5 +1,6 @@
 package io.nwhacks.nfc;
 
+import android.support.annotation.RequiresPermission;
 import android.support.v4.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.PendingIntent;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView navigation;
     private List<Fragment> fragmentsList;
     private ReadFragment readFragment;
+    private WriteFragment writeFragment;
 
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -78,7 +80,8 @@ public class MainActivity extends AppCompatActivity {
         fragmentsList = new ArrayList<>();
         readFragment = new ReadFragment();
         fragmentsList.add(readFragment);
-        fragmentsList.add(new WriteFragment());
+        writeFragment = new WriteFragment();
+        fragmentsList.add(writeFragment);
 
 
         mViewPager.setAdapter(new MyFragmentPagerAdapter(getSupportFragmentManager(), fragmentsList));
@@ -132,7 +135,8 @@ public class MainActivity extends AppCompatActivity {
             toast("You need to verify your email!");
             return;
         }
-        readFragment.loggedIn();
+        readFragment.loggedIn(user);
+        writeFragment.loggedIn(user);
     }
 
     private void firebaseLogin() {
