@@ -110,6 +110,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onPause() {
+        NfcAdapter nfcAdpt = NfcAdapter.getDefaultAdapter(this);
+        nfcAdpt.disableForegroundDispatch(this);
+        super.onPause();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        String action = intent.getAction();
+        if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)){
+            // currently toasts the first text record from NFC tag
+            ArrayList<String> contents = nfcMgr.readTagFromIntent(intent);
+            if (contents.size() > 0){
+                toast(contents.get(0));
+            }
+        }
+    }
+    @Override
     public void onResume() {
         super.onResume();
 
