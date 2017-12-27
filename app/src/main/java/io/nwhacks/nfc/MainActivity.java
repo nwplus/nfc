@@ -119,12 +119,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         String action = intent.getAction();
-        if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)){
-            // currently toasts the first text record from NFC tag
-            ArrayList<String> contents = nfcMgr.readTagFromIntent(intent);
-            if (contents.size() > 0){
-                toast(contents.get(0));
-            }
+        toast(intent.getAction());
+        try {
+            if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(action) || NfcAdapter.ACTION_TAG_DISCOVERED.equals(action)){
+                nfcMgr.writeTagFromIntent(intent, "testing1234");
+            } toast(nfcMgr.readTagFromIntent(intent).get(0));
+        } catch (Exception e) {
+            toast("write failed");
         }
     }
     @Override
@@ -137,11 +138,10 @@ public class MainActivity extends AppCompatActivity {
         Intent nfcIntent = new Intent(this, getClass());
         nfcIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, nfcIntent, 0);
-        IntentFilter[] intentFiltersArray = new IntentFilter[] {};
-        String[][] techList = new String[][] {
-                { android.nfc.tech.Ndef.class.getName() },
-                { android.nfc.tech.NdefFormatable.class.getName() }
-        };
+        IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
+        IntentFilter techDetected = new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED);
+        IntentFilter[] intentFiltersArray = new IntentFilter[] {tagDetected, techDetected};
+        String[][] techList = nfcMgr.getTechList();
         NfcAdapter nfcAdpt = NfcAdapter.getDefaultAdapter(this);
         nfcAdpt.enableForegroundDispatch(this, pendingIntent, intentFiltersArray, techList);
 
