@@ -63,15 +63,29 @@ class WriteFragment extends Fragment {
     private void initView() {
         deviceInfo.setText("Device ID: " + android_id + "\nManufacturer: "+manufacturer+"\nModel: "+model+"\nUser: "+user.getDisplayName()+"\nEmail: "+user.getEmail());
         DeviceInfo di = new DeviceInfo();
-        di.id = android_id;
-        di.manufacturer = manufacturer;
-        di.model = model;
-        di.email = user.getEmail();
-        di.name = user.getDisplayName();
+
 
         FirebaseDatabase db = FirebaseDatabase.getInstance();
-        DatabaseReference ref = db.getReference("admin/devices").child(android_id);
-        ref.setValue(di);
+        final DatabaseReference ref = db.getReference("admin/devices").child(android_id);
+
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                DeviceInfo di = dataSnapshot.getValue(DeviceInfo.class);
+                di.id = android_id;
+                di.manufacturer = manufacturer;
+                di.model = model;
+                di.email = user.getEmail();
+                di.name = user.getDisplayName();
+                ref.setValue(di);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
