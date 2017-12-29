@@ -32,6 +32,9 @@ public class ReadFragment extends NFCFragment {
     private List<String> arguments;
     private Spinner events;
     private TextView recordDisplay;
+    private TextView name;
+    private TextView email;
+    private TextView id;
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -44,6 +47,9 @@ public class ReadFragment extends NFCFragment {
             this.setArguments(arguments);
         }
         recordDisplay = rootView.findViewById(R.id.recordDisplay);
+        name = rootView.findViewById(R.id.name);
+        email = rootView.findViewById(R.id.email);
+        id = rootView.findViewById(R.id.id);
         return rootView;
     }
 
@@ -71,7 +77,7 @@ public class ReadFragment extends NFCFragment {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                MainActivity.toast(getContext(), databaseError.getMessage());
             }
         });
     }
@@ -88,7 +94,27 @@ public class ReadFragment extends NFCFragment {
             sb.append("\n");
         }
         String body = sb.toString();
-        MainActivity.toast(getContext(), body);
+        MainActivity.toast(getContext(), "Read Tag!");
         recordDisplay.setText(body);
+
+        if (records.size() > 0) {
+            String id = records.get(0);
+            this.id.setText(id);
+            FirebaseDatabase db = FirebaseDatabase.getInstance();
+            DatabaseReference ref = db.getReference("form/registration").child(id);
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Hacker h = dataSnapshot.getValue(Hacker.class);
+                    name.setText(h.first_name + " " + h.last_name);
+                    email.setText(h.email);
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    MainActivity.toast(getContext(), databaseError.getMessage());
+                }
+            });
+        }
     }
 }
