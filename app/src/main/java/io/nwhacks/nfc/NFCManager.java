@@ -44,7 +44,7 @@ public class NFCManager {
             writeTag(tag, payload);
             return true;
         } catch (Exception e){
-            Log.v("myerror", e.getMessage());
+            MainActivity.toast(activity.getApplicationContext(), "NFC Write Error:\n" + e.getMessage());
             return false;
         }
     }

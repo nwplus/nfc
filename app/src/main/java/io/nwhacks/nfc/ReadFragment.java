@@ -1,5 +1,6 @@
 package io.nwhacks.nfc;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -22,7 +23,7 @@ import java.util.List;
  * Created by rice on 11/30/17.
  */
 
-public class ReadFragment extends Fragment {
+public class ReadFragment extends NFCFragment {
     public static final String ARG_OBJECT = "object";
 
     List<String> arguments;
@@ -70,4 +71,8 @@ public class ReadFragment extends Fragment {
         });
     }
 
+    @Override
+    public void tagDiscovered(NFCManager mgr, Intent intent) {
+        MainActivity.toast(getContext(), "Tag body: " + mgr.readTagFromIntent(intent).get(0));
+    }
 }

@@ -13,8 +13,8 @@ import java.util.List;
  */
 
 public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
-    List<Fragment> fragmentsList;
-    public MyFragmentPagerAdapter(FragmentManager fm, List<Fragment> fragments) {
+    List<NFCFragment> fragmentsList;
+    public MyFragmentPagerAdapter(FragmentManager fm, List<NFCFragment> fragments) {
         super(fm);
 
         fragmentsList = fragments;

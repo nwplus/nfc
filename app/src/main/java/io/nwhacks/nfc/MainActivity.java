@@ -1,5 +1,7 @@
 package io.nwhacks.nfc;
 
+import android.content.Context;
+import android.os.Vibrator;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.Fragment;
 import android.app.FragmentTransaction;
@@ -44,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 123;
     private ViewPager mViewPager;
     private BottomNavigationView navigation;
-    private List<Fragment> fragmentsList;
+    private List<NFCFragment> fragmentsList;
     private ReadFragment readFragment;
     private WriteFragment writeFragment;
 
@@ -88,7 +90,6 @@ public class MainActivity extends AppCompatActivity {
         mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
-                //navigation.setSelectedItemId(position);
                 navigation.getMenu().getItem(position).setChecked(true);
             }
         });
@@ -116,16 +117,16 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
+    private NFCFragment activeFragment() {
+        return fragmentsList.get(mViewPager.getCurrentItem());
+    }
+
     @Override
     protected void onNewIntent(Intent intent) {
         String action = intent.getAction();
-        toast(intent.getAction());
-        try {
-            if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(action) || NfcAdapter.ACTION_TAG_DISCOVERED.equals(action)){
-                nfcMgr.writeTagFromIntent(intent, "testing1234");
-            } toast(nfcMgr.readTagFromIntent(intent).get(0));
-        } catch (Exception e) {
-            toast("write failed");
+        System.out.println(intent.getAction());
+        if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(action) || NfcAdapter.ACTION_TAG_DISCOVERED.equals(action)) {
+            activeFragment().tagDiscovered(nfcMgr, intent);
         }
     }
     @Override
@@ -133,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         if (!nfcMgr.verifyNFC()) {
-            toast("No NFC Found!");
+            toast(this, "No NFC Found!");
         }
         Intent nfcIntent = new Intent(this, getClass());
         nfcIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -150,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
     private void loggedIn(FirebaseUser user) {
         if (!user.isEmailVerified()) {
             user.sendEmailVerification();
-            toast("You need to verify your email!");
+            toast(this, "You need to verify your email!");
             return;
         }
         readFragment.loggedIn(user);
@@ -186,12 +187,15 @@ public class MainActivity extends AppCompatActivity {
                 loggedIn(user);
             } else {
                 // Sign in failed, check response for error code
-                toast("Signin failed!");
+                toast(this, "Signin failed!");
             }
         }
     }
 
-    private void toast (String msg) {
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+    public static void toast (Context ctx, String msg) {
+        Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
+        Vibrator v = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
+        // Vibrate for 500 milliseconds
+        v.vibrate(100);
     }
 }

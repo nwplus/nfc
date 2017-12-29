@@ -1,5 +1,7 @@
 package io.nwhacks.nfc;
 
+import android.bluetooth.BluetoothClass;
+import android.content.Intent;
 import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.app.Fragment;
@@ -16,12 +18,18 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+
 /**
  * Created by rice on 11/30/17.
  */
 
-class WriteFragment extends Fragment {
+class WriteFragment extends NFCFragment {
     public static final String ARG_OBJECT = "object";
+    public static final int SUCCESS_COLOR = 0xFF5cb85c;
+    public static final int ERROR_COLOR = 0xFFd9534f;
+    public static final int DEFAULT_COLOR = 0xFFFFFFFF;
+
 
     private String android_id;
     private String manufacturer = Build.MANUFACTURER;
@@ -32,13 +40,15 @@ class WriteFragment extends Fragment {
     private boolean loggedIn = false;
     private boolean created = false;
     private FirebaseUser user;
+    private DeviceInfo di;
+    private View rootView;
 
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         // The last two arguments ensure LayoutParams are inflated
         // properly.
-        View rootView = inflater.inflate(R.layout.write_fragment, container, false);
+        rootView = inflater.inflate(R.layout.write_fragment, container, false);
         deviceInfo = rootView.findViewById(R.id.device_info);
         writeID = rootView.findViewById(R.id.write_id);
         writeName = rootView.findViewById(R.id.write_name);
@@ -62,8 +72,6 @@ class WriteFragment extends Fragment {
 
     private void initView() {
         deviceInfo.setText("Device ID: " + android_id + "\nManufacturer: "+manufacturer+"\nModel: "+model+"\nUser: "+user.getDisplayName()+"\nEmail: "+user.getEmail());
-        DeviceInfo di = new DeviceInfo();
-
 
         FirebaseDatabase db = FirebaseDatabase.getInstance();
         final DatabaseReference ref = db.getReference("admin/devices").child(android_id);
@@ -82,22 +90,40 @@ class WriteFragment extends Fragment {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                MainActivity.toast(getContext(), databaseError.getMessage());
             }
         });
 
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                DeviceInfo di = dataSnapshot.getValue(DeviceInfo.class);
+                di = dataSnapshot.getValue(DeviceInfo.class);
                 writeID.setText(di.write_id);
                 writeName.setText(di.write_name);
+                setColor(DEFAULT_COLOR);
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+              MainActivity.toast(getContext(), databaseError.getMessage());
             }
         });
+    }
+
+    private void setColor(int color) {
+        rootView.setBackgroundColor(color);
+    }
+
+    @Override
+    public void tagDiscovered(NFCManager mgr, Intent intent) {
+        if (di.write_id.length() == 0) {
+            MainActivity.toast(getContext(), "no ID to write");
+        }
+
+        mgr.writeTagFromIntent(intent, di.write_id);
+        MainActivity.toast(getContext(), "ID written to tag");
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        db.getReference("form/registration/" + di.write_id + "/nfc_written").setValue(true);
+        setColor(SUCCESS_COLOR);
     }
 }
