@@ -47,8 +47,6 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager mViewPager;
     private BottomNavigationView navigation;
     private List<NFCFragment> fragmentsList;
-    private ReadFragment readFragment;
-    private WriteFragment writeFragment;
 
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -80,10 +78,9 @@ public class MainActivity extends AppCompatActivity {
         mViewPager = findViewById(R.id.pager);
 
         fragmentsList = new ArrayList<>();
-        readFragment = new ReadFragment();
-        fragmentsList.add(readFragment);
-        writeFragment = new WriteFragment();
-        fragmentsList.add(writeFragment);
+        fragmentsList.add(new ReadFragment());
+        fragmentsList.add(new WriteFragment());
+        fragmentsList.add(new EventsFragment());
 
 
         mViewPager.setAdapter(new MyFragmentPagerAdapter(getSupportFragmentManager(), fragmentsList));
@@ -154,8 +151,9 @@ public class MainActivity extends AppCompatActivity {
             toast(this, "You need to verify your email!");
             return;
         }
-        readFragment.loggedIn(user);
-        writeFragment.loggedIn(user);
+        for (NFCFragment f : fragmentsList) {
+            f.loggedIn(user);
+        }
     }
 
     private void firebaseLogin() {
