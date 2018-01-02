@@ -121,7 +121,7 @@ class WriteFragment extends NFCFragment {
         }
 
         mgr.writeTagFromIntent(intent, di.write_id);
-        MainActivity.toast(getContext(), "ID written to tag");
+        MainActivity.toast(getContext(), "ID written to tag", 100);
         FirebaseDatabase db = FirebaseDatabase.getInstance();
         db.getReference("form/registration/" + di.write_id + "/nfc_written").setValue(true);
         setColor(SUCCESS_COLOR);

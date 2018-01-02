@@ -97,7 +97,7 @@ public class ReadFragment extends NFCFragment {
             sb.append("\n");
         }
         String body = sb.toString();
-        MainActivity.toast(getContext(), "Read Tag!", 0);
+        MainActivity.toast(getContext(), "Read Tag!");
         recordDisplay.setText(body);
 
         if (records.size() > 0) {
@@ -117,20 +117,20 @@ public class ReadFragment extends NFCFragment {
                         if (event.getKey().equals(selectedEvent)){
                             boolean result = onEventJoin(id, selectedEvent, Integer.valueOf(event.getValue().toString()));
                             if (result){
-                                MainActivity.toast(getContext(),"Checked user into event!");
+                                MainActivity.toast(getContext(),"Checked user into event!", 100);
                             } else {
-                                MainActivity.toast(getContext(), "User has already checked in!", 0);
+                                MainActivity.toast(getContext(), "User has already checked in!");
                             }
                             return;
                         }
                     }
-                    MainActivity.toast(getContext(),"Checked user into event for first time!");
+                    MainActivity.toast(getContext(),"Checked user into event for first time!", 100);
                     onEventJoin(id, selectedEvent, 0);
                 }
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-                    MainActivity.toast(getContext(), databaseError.getMessage(), 0);
+                    MainActivity.toast(getContext(), databaseError.getMessage());
                 }
             });
         }
@@ -138,7 +138,7 @@ public class ReadFragment extends NFCFragment {
 
     /* Write event attendance to participant in Firebase - returns true if user can join event */
     public Boolean onEventJoin(String id, String event_name, Integer checkInCount){
-        if (checkInCount+1 == 2 && allowSeconds.isChecked() || checkInCount < 2) {
+        if (checkInCount+1 == 2 && allowSeconds.isChecked() || checkInCount+1 < 2) {
             FirebaseDatabase db = FirebaseDatabase.getInstance();
             db.getReference("form/registration/" + id + "/events/" + event_name).setValue(checkInCount + 1);
             return true;

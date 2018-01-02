@@ -192,9 +192,6 @@ public class MainActivity extends AppCompatActivity {
 
     public static void toast (Context ctx, String msg) {
         Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
-        Vibrator v = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
-        // Vibrate for 500 milliseconds
-        v.vibrate(100);
     }
 
     public static void toast (Context ctx, String msg, Integer duration) {
