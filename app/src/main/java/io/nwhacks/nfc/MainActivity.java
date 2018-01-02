@@ -199,7 +199,9 @@ public class MainActivity extends AppCompatActivity {
 
     public static void toast (Context ctx, String msg, Integer duration) {
         Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
-        Vibrator v = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(duration);
+        if (duration > 0){
+            Vibrator v = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
+            v.vibrate(duration);
+        }
     }
 }
