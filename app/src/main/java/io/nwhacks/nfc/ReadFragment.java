@@ -108,6 +108,17 @@ public class ReadFragment extends NFCFragment {
                     Hacker h = dataSnapshot.getValue(Hacker.class);
                     name.setText(h.first_name + " " + h.last_name);
                     email.setText(h.email);
+
+                    String selectedEvent = formatEventName(events.getSelectedItem().toString());
+                    for (DataSnapshot event : dataSnapshot.child("events").getChildren()) {
+                        if (event.getKey().equals(selectedEvent)){
+                            onEventJoin(id, selectedEvent, Integer.valueOf(event.getValue().toString()));
+                            MainActivity.toast(getContext(),"Checked user into event!");
+                            return;
+                        }
+                    }
+                    onEventJoin(id, selectedEvent, 0);
+                    MainActivity.toast(getContext(),"Checked user into event for first time!");
                 }
 
                 @Override
@@ -116,5 +127,15 @@ public class ReadFragment extends NFCFragment {
                 }
             });
         }
+    }
+
+    /* Write event attendance to participant in Firebase */
+    public void onEventJoin(String id, String event_name, Integer checkInCount){
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        db.getReference("form/registration/" + id + "/events/" + event_name).setValue(checkInCount+1);
+    }
+
+    public String formatEventName(String event_name){
+        return event_name.replaceAll(" ", "_").toLowerCase();
     }
 }
