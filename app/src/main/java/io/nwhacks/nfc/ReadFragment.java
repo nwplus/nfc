@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -31,6 +32,7 @@ public class ReadFragment extends NFCFragment {
 
     private List<String> arguments;
     private Spinner events;
+    private CheckBox allowSeconds;
     private TextView recordDisplay;
     private TextView name;
     private TextView email;
@@ -47,6 +49,7 @@ public class ReadFragment extends NFCFragment {
             this.setArguments(arguments);
         }
         recordDisplay = rootView.findViewById(R.id.recordDisplay);
+        allowSeconds = rootView.findViewById(R.id.allowSeconds);
         name = rootView.findViewById(R.id.name);
         email = rootView.findViewById(R.id.email);
         id = rootView.findViewById(R.id.id);
@@ -94,7 +97,7 @@ public class ReadFragment extends NFCFragment {
             sb.append("\n");
         }
         String body = sb.toString();
-        MainActivity.toast(getContext(), "Read Tag!");
+        MainActivity.toast(getContext(), "Read Tag!", 0);
         recordDisplay.setText(body);
 
         if (records.size() > 0) {
@@ -112,27 +115,35 @@ public class ReadFragment extends NFCFragment {
                     String selectedEvent = formatEventName(events.getSelectedItem().toString());
                     for (DataSnapshot event : dataSnapshot.child("events").getChildren()) {
                         if (event.getKey().equals(selectedEvent)){
-                            onEventJoin(id, selectedEvent, Integer.valueOf(event.getValue().toString()));
-                            MainActivity.toast(getContext(),"Checked user into event!");
+                            boolean result = onEventJoin(id, selectedEvent, Integer.valueOf(event.getValue().toString()));
+                            if (result){
+                                MainActivity.toast(getContext(),"Checked user into event!");
+                            } else {
+                                MainActivity.toast(getContext(), "User has already checked in!", 0);
+                            }
                             return;
                         }
                     }
-                    onEventJoin(id, selectedEvent, 0);
                     MainActivity.toast(getContext(),"Checked user into event for first time!");
+                    onEventJoin(id, selectedEvent, 0);
                 }
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-                    MainActivity.toast(getContext(), databaseError.getMessage());
+                    MainActivity.toast(getContext(), databaseError.getMessage(), 0);
                 }
             });
         }
     }
 
-    /* Write event attendance to participant in Firebase */
-    public void onEventJoin(String id, String event_name, Integer checkInCount){
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-        db.getReference("form/registration/" + id + "/events/" + event_name).setValue(checkInCount+1);
+    /* Write event attendance to participant in Firebase - returns true if user can join event */
+    public Boolean onEventJoin(String id, String event_name, Integer checkInCount){
+        if (checkInCount+1 == 2 && allowSeconds.isChecked() || checkInCount < 2) {
+            FirebaseDatabase db = FirebaseDatabase.getInstance();
+            db.getReference("form/registration/" + id + "/events/" + event_name).setValue(checkInCount + 1);
+            return true;
+        }
+        return false;
     }
 
     public String formatEventName(String event_name){
