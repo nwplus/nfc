@@ -24,7 +24,7 @@ import java.util.ArrayList;
  * Created by rice on 11/30/17.
  */
 
-class WriteFragment extends NFCFragment {
+public class WriteFragment extends NFCFragment {
     public static final String ARG_OBJECT = "object";
     public static final int SUCCESS_COLOR = 0xFF5cb85c;
     public static final int ERROR_COLOR = 0xFFd9534f;
