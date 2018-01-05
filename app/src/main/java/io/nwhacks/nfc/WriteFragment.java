@@ -100,6 +100,9 @@ public class WriteFragment extends NFCFragment {
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    return;
+                }
                 di = dataSnapshot.getValue(DeviceInfo.class);
                 writeID.setText(di.write_id);
                 writeName.setText(di.write_name);
