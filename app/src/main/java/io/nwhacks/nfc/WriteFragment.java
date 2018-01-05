@@ -80,6 +80,9 @@ public class WriteFragment extends NFCFragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 DeviceInfo di = dataSnapshot.getValue(DeviceInfo.class);
+                if (di == null) {
+                    di = new DeviceInfo();
+                }
                 di.id = android_id;
                 di.manufacturer = manufacturer;
                 di.model = model;
