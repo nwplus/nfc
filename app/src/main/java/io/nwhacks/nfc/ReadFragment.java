@@ -93,7 +93,6 @@ public class ReadFragment extends NFCFragment {
 
     @Override
     public void tagDiscovered(NFCManager mgr, Intent intent) {
-        setColor(DEFAULT_COLOR);
         ArrayList<String> records = mgr.readTagFromIntent(intent);
 
         if (records.size() == 0){
@@ -131,6 +130,7 @@ public class ReadFragment extends NFCFragment {
                             boolean result = onEventJoin(id, selectedEvent, Integer.valueOf(event.getValue().toString()));
                             if (result){
                                 MainActivity.toast(getContext(),"Checked user into event!", 100);
+                                setColor(DEFAULT_COLOR);
                             } else {
                                 MainActivity.toast(getContext(), "User has already checked in!");
                                 setColor(ERROR_COLOR);
@@ -139,6 +139,7 @@ public class ReadFragment extends NFCFragment {
                         }
                     }
                     MainActivity.toast(getContext(),"Checked user into event for first time!", 100);
+                    setColor(DEFAULT_COLOR);
                     onEventJoin(id, selectedEvent, 0);
                 }
 
