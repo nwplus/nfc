@@ -90,6 +90,12 @@ public class ReadFragment extends NFCFragment {
     @Override
     public void tagDiscovered(NFCManager mgr, Intent intent) {
         ArrayList<String> records = mgr.readTagFromIntent(intent);
+
+        if (records.size() == 0){
+            MainActivity.toast(this.getContext(), "Tag is empty or not yet formatted.");
+            return;
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.append("Tag records:\n");
         for (int i = 0; i<records.size(); i++) {

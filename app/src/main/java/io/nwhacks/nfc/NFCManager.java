@@ -57,7 +57,11 @@ public class NFCManager {
     /* Return all text records from NFC tag.*/
     public ArrayList<String> readTag(Tag tag){
         ArrayList<String> contents = new ArrayList<String>();
+
         Ndef ndefTag = Ndef.get(tag);
+        if (ndefTag == null){
+            return contents;
+        }
 
         NdefMessage ndefMesg = ndefTag.getCachedNdefMessage();
         if (ndefMesg == null) {
