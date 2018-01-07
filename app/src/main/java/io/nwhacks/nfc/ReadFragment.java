@@ -33,6 +33,7 @@ public class ReadFragment extends NFCFragment {
     private List<String> arguments;
     private Spinner events;
     private CheckBox allowSeconds;
+    private CheckBox allowUnlimited;
     private TextView recordDisplay;
     private TextView name;
     private TextView email;
@@ -50,6 +51,7 @@ public class ReadFragment extends NFCFragment {
         }
         recordDisplay = rootView.findViewById(R.id.recordDisplay);
         allowSeconds = rootView.findViewById(R.id.allowSeconds);
+        allowUnlimited = rootView.findViewById(R.id.allowUnlimited);
         name = rootView.findViewById(R.id.name);
         email = rootView.findViewById(R.id.email);
         id = rootView.findViewById(R.id.id);
@@ -138,7 +140,9 @@ public class ReadFragment extends NFCFragment {
 
     /* Write event attendance to participant in Firebase - returns true if user can join event */
     public Boolean onEventJoin(String id, String event_name, Integer checkInCount){
-        if (checkInCount+1 == 2 && allowSeconds.isChecked() || checkInCount+1 < 2) {
+        if ( allowUnlimited.isChecked()
+                || (checkInCount+1 == 2 && allowSeconds.isChecked())
+                || checkInCount+1 < 2) {
             FirebaseDatabase db = FirebaseDatabase.getInstance();
             db.getReference("form/registration/" + id + "/events/" + event_name).setValue(checkInCount + 1);
             return true;
