@@ -39,7 +39,7 @@ public class ReadFragment extends NFCFragment {
     private TextView email;
     private TextView id;
     private View rootView;
-    public static final int SUCCESS_COLOR = 0xFF5cb85c;
+    public static final int WARNING_COLOR = 0xFFff8000;
     public static final int ERROR_COLOR = 0xFFFF0000;
     public static final int DEFAULT_COLOR = 0xFFFFFFFF;
 
@@ -98,6 +98,7 @@ public class ReadFragment extends NFCFragment {
         if (records.size() == 0){
             MainActivity.toast(getContext(), "Tag is empty or not yet formatted.");
             setColor(ERROR_COLOR);
+            resetDetailView();
             return;
         }
 
@@ -133,7 +134,7 @@ public class ReadFragment extends NFCFragment {
                                 setColor(DEFAULT_COLOR);
                             } else {
                                 MainActivity.toast(getContext(), "User has already checked in!");
-                                setColor(ERROR_COLOR);
+                                setColor(WARNING_COLOR);
                             }
                             return;
                         }
@@ -146,9 +147,17 @@ public class ReadFragment extends NFCFragment {
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
                     MainActivity.toast(getContext(), databaseError.getMessage());
+                    setColor(ERROR_COLOR);
+                    resetDetailView();
                 }
             });
         }
+    }
+
+    private void resetDetailView() {
+        name.setText("Name");
+        email.setText("Email");
+        id.setText("ID");
     }
 
     /* Write event attendance to participant in Firebase - returns true if user can join event */
