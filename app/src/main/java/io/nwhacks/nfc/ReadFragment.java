@@ -38,13 +38,17 @@ public class ReadFragment extends NFCFragment {
     private TextView name;
     private TextView email;
     private TextView id;
+    private View rootView;
+    public static final int SUCCESS_COLOR = 0xFF5cb85c;
+    public static final int ERROR_COLOR = 0xFFFF0000;
+    public static final int DEFAULT_COLOR = 0xFFFFFFFF;
 
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         // The last two arguments ensure LayoutParams are inflated
         // properly.
-        View rootView = inflater.inflate(R.layout.read_fragment, container, false);
+        rootView = inflater.inflate(R.layout.read_fragment, container, false);
         events = rootView.findViewById(R.id.event_spinner);
         if (arguments != null) {
             this.setArguments(arguments);
@@ -89,10 +93,12 @@ public class ReadFragment extends NFCFragment {
 
     @Override
     public void tagDiscovered(NFCManager mgr, Intent intent) {
+        setColor(DEFAULT_COLOR);
         ArrayList<String> records = mgr.readTagFromIntent(intent);
 
         if (records.size() == 0){
-            MainActivity.toast(this.getContext(), "Tag is empty or not yet formatted.");
+            MainActivity.toast(getContext(), "Tag is empty or not yet formatted.");
+            setColor(ERROR_COLOR);
             return;
         }
 
@@ -105,7 +111,6 @@ public class ReadFragment extends NFCFragment {
             sb.append("\n");
         }
         String body = sb.toString();
-        MainActivity.toast(getContext(), "Read Tag!");
         recordDisplay.setText(body);
 
         if (records.size() > 0) {
@@ -128,6 +133,7 @@ public class ReadFragment extends NFCFragment {
                                 MainActivity.toast(getContext(),"Checked user into event!", 100);
                             } else {
                                 MainActivity.toast(getContext(), "User has already checked in!");
+                                setColor(ERROR_COLOR);
                             }
                             return;
                         }
@@ -158,5 +164,9 @@ public class ReadFragment extends NFCFragment {
 
     public String formatEventName(String event_name){
         return event_name.replaceAll(" ", "_").toLowerCase();
+    }
+
+    private void setColor(int color) {
+        rootView.setBackgroundColor(color);
     }
 }

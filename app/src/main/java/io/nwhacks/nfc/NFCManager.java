@@ -44,7 +44,7 @@ public class NFCManager {
             writeTag(tag, payload);
             return true;
         } catch (Exception e){
-            MainActivity.toast(activity.getApplicationContext(), "NFC Write Error:\n" + e.getMessage());
+            MainActivity.toast(activity.getApplicationContext(), "Failed to write to invalid or unformatted tag.");
             return false;
         }
     }

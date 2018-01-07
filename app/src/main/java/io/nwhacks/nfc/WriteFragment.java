@@ -19,6 +19,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by rice on 11/30/17.
@@ -26,10 +27,8 @@ import java.util.ArrayList;
 
 public class WriteFragment extends NFCFragment {
     public static final String ARG_OBJECT = "object";
-    public static final int SUCCESS_COLOR = 0xFF5cb85c;
-    public static final int ERROR_COLOR = 0xFFd9534f;
+    public static final int ERROR_COLOR = 0xFFFF0000;
     public static final int DEFAULT_COLOR = 0xFFFFFFFF;
-
 
     private String android_id;
     private String manufacturer = Build.MANUFACTURER;
@@ -122,14 +121,17 @@ public class WriteFragment extends NFCFragment {
 
     @Override
     public void tagDiscovered(NFCManager mgr, Intent intent) {
-        if (di.write_id.length() == 0) {
-            MainActivity.toast(getContext(), "no ID to write");
+        if (di.write_id.length() == 0)
+            MainActivity.toast(getContext(), "No ID to write");
+
+        if (mgr.writeTagFromIntent(intent, di.write_id)){
+            MainActivity.toast(getContext(), "ID written to tag", 100);
+            FirebaseDatabase db = FirebaseDatabase.getInstance();
+            db.getReference("form/registration/" + di.write_id + "/nfc_written").setValue(true);
+            setColor(DEFAULT_COLOR);
+        } else {
+            setColor(ERROR_COLOR);
         }
 
-        mgr.writeTagFromIntent(intent, di.write_id);
-        MainActivity.toast(getContext(), "ID written to tag", 100);
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-        db.getReference("form/registration/" + di.write_id + "/nfc_written").setValue(true);
-        setColor(SUCCESS_COLOR);
     }
 }
