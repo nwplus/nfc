@@ -83,6 +83,10 @@ public class EventsFragment extends NFCFragment {
 
     public void addEvent() {
         String name = eventName.getText().toString();
+        if (name.length() == 0) {
+            MainActivity.toast(getContext(), "Invalid event name");
+            return;
+        }
         Event e = new Event();
         e.name = name;
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -91,7 +95,7 @@ public class EventsFragment extends NFCFragment {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if (documentSnapshot.getData() != null) {
-                    MainActivity.toast(getContext(), name+" already exists.");
+                    MainActivity.toast(getContext(), name+" already exists");
                 } else {
                     db.collection("nfc_events").document(name).set(e)
                             .addOnSuccessListener(new OnSuccessListener<Void>() {
