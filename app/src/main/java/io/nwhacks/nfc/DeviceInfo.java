@@ -10,10 +10,9 @@ public class DeviceInfo {
     public String id;
     public String manufacturer;
     public String model;
-    public String name;
     public String email;
-    public String write_name;
-    public String write_id;
+    public String writeName;
+    public String writeId;
 
     DeviceInfo() {
 

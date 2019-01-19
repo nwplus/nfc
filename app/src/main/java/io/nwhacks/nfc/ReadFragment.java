@@ -2,7 +2,7 @@ package io.nwhacks.nfc;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,17 +11,20 @@ import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-import org.w3c.dom.Text;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 /**
  * Created by rice on 11/30/17.
@@ -71,22 +74,23 @@ public class ReadFragment extends NFCFragment {
     }
 
     public void loggedIn(FirebaseUser user) {
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-        DatabaseReference ref = db.getReference("admin/events");
-        ref.addValueEventListener(new ValueEventListener() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("nfc_events").addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                arguments = new ArrayList<>();
-                for (DataSnapshot postSnapshot: snapshot.getChildren()) {
-                    Event e = postSnapshot.getValue(Event.class);
-                    arguments.add(e.name);
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                System.out.println(queryDocumentSnapshots);
+                if (e != null) {
+                    MainActivity.toast(getContext(), e.getMessage());
+                    return;
                 }
-                setArguments(arguments);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                MainActivity.toast(getContext(), databaseError.getMessage());
+                if (queryDocumentSnapshots != null) {
+                    arguments = new ArrayList<>();
+                    for (DocumentSnapshot documentSnapshot: queryDocumentSnapshots.getDocuments()) {
+                        Event event = documentSnapshot.toObject(Event.class);
+                        arguments.add(event.name);
+                    }
+                    setArguments(arguments);
+                }
             }
         });
     }
@@ -95,7 +99,7 @@ public class ReadFragment extends NFCFragment {
     public void tagDiscovered(NFCManager mgr, Intent intent) {
         ArrayList<String> records = mgr.readTagFromIntent(intent);
 
-        if (records.size() == 0){
+        if (records.size() == 0) {
             MainActivity.toast(getContext(), "Tag is empty or not yet formatted.");
             setColor(ERROR_COLOR);
             resetDetailView();
@@ -104,7 +108,7 @@ public class ReadFragment extends NFCFragment {
 
         StringBuilder sb = new StringBuilder();
         sb.append("Tag records:\n");
-        for (int i = 0; i<records.size(); i++) {
+        for (int i = 0; i < records.size(); i++) {
             sb.append(i);
             sb.append(". ");
             sb.append(records.get(i));
@@ -112,45 +116,45 @@ public class ReadFragment extends NFCFragment {
         }
         String body = sb.toString();
         recordDisplay.setText(body);
-
         if (records.size() > 0) {
             String id = records.get(0);
             this.id.setText(id);
-            FirebaseDatabase db = FirebaseDatabase.getInstance();
-            DatabaseReference ref = db.getReference("form/registration").child(id);
-            ref.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    Hacker h = dataSnapshot.getValue(Hacker.class);
-                    name.setText(h.first_name + " " + h.last_name);
-                    email.setText(h.email);
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            DocumentReference applicant = db.collection("hacker_short_info").document(id);
+            applicant.get()
+                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                        @Override
+                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            Hacker h = documentSnapshot.toObject(Hacker.class);
+                            name.setText(h.firstName + " " + h.lastName);
+                            email.setText(h.email);
 
-                    String selectedEvent = formatEventName(events.getSelectedItem().toString());
-                    for (DataSnapshot event : dataSnapshot.child("events").getChildren()) {
-                        if (event.getKey().equals(selectedEvent)){
-                            boolean result = onEventJoin(id, selectedEvent, Integer.valueOf(event.getValue().toString()));
-                            if (result){
-                                MainActivity.toast(getContext(),"Checked user into event!", 100);
+                            String selectedEvent = formatEventName(events.getSelectedItem().toString());
+                            Integer checkInCount = h.events.get(selectedEvent);
+                            if (checkInCount == null) {
+                                onEventJoin(id, selectedEvent, 0);
+                                MainActivity.toast(getContext(),"Checked user into event for first time!", 100);
                                 setColor(DEFAULT_COLOR);
                             } else {
-                                MainActivity.toast(getContext(), "User has already checked in!");
-                                setColor(WARNING_COLOR);
+                                boolean result = onEventJoin(id, selectedEvent, checkInCount);
+                                if (result) {
+                                    MainActivity.toast(getContext(), "Checked user into event!", 100);
+                                    setColor(DEFAULT_COLOR);
+                                } else {
+                                    MainActivity.toast(getContext(), "User has already checked in!");
+                                    setColor(WARNING_COLOR);
+                                }
                             }
-                            return;
                         }
-                    }
-                    MainActivity.toast(getContext(),"Checked user into event for first time!", 100);
-                    setColor(DEFAULT_COLOR);
-                    onEventJoin(id, selectedEvent, 0);
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    MainActivity.toast(getContext(), databaseError.getMessage());
-                    setColor(ERROR_COLOR);
-                    resetDetailView();
-                }
-            });
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            MainActivity.toast(getContext(), e.getMessage());
+                            setColor(ERROR_COLOR);
+                            resetDetailView();
+                        }
+                    });
         }
     }
 
@@ -160,13 +164,14 @@ public class ReadFragment extends NFCFragment {
         id.setText("ID");
     }
 
-    /* Write event attendance to participant in Firebase - returns true if user can join event */
+    /* Write event attendance to participant in database - returns true if user can join event */
     public Boolean onEventJoin(String id, String event_name, Integer checkInCount){
         if ( allowUnlimited.isChecked()
                 || (checkInCount+1 == 2 && allowSeconds.isChecked())
                 || checkInCount+1 < 2) {
-            FirebaseDatabase db = FirebaseDatabase.getInstance();
-            db.getReference("form/registration/" + id + "/events/" + event_name).setValue(checkInCount + 1);
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            DocumentReference applicant = db.collection("hacker_short_info").document(id);
+            applicant.update("events."+event_name, checkInCount + 1);
             return true;
         }
         return false;

@@ -2,24 +2,28 @@ package io.nwhacks.nfc;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-import com.github.slugify.Slugify;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 /**
  * Created by rice on 11/30/17.
@@ -31,7 +35,6 @@ public class EventsFragment extends NFCFragment {
     private List<String> arguments;
     private Spinner events;
     private EditText eventName;
-
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -46,10 +49,9 @@ public class EventsFragment extends NFCFragment {
         eventName = rootView.findViewById(R.id.eventName);
         rootView.findViewById(R.id.addEvent).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                addEvent(v);
+                addEvent();
             }
         });
-
         return rootView;
     }
 
@@ -62,37 +64,51 @@ public class EventsFragment extends NFCFragment {
     }
 
     public void loggedIn(FirebaseUser user) {
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-        DatabaseReference ref = db.getReference("admin/events");
-        ref.addValueEventListener(new ValueEventListener() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("nfc_events").addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                arguments = new ArrayList<>();
-                for (DataSnapshot postSnapshot: snapshot.getChildren()) {
-                    Event e = postSnapshot.getValue(Event.class);
-                    arguments.add(e.name);
+            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+                if(!queryDocumentSnapshots.isEmpty()){
+                    List<DocumentSnapshot> docs = queryDocumentSnapshots.getDocuments();
+                    arguments = new ArrayList<>();
+                    for(DocumentSnapshot eventDoc : docs){
+                        Event event = eventDoc.toObject(Event.class);
+                        arguments.add(event.name);
+                    }
+                    setArguments(arguments);
                 }
-                setArguments(arguments);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
             }
         });
     }
 
-    public void addEvent(View view) {
+    public void addEvent() {
         String name = eventName.getText().toString();
-        Slugify slg = new Slugify();
-        String id = slg.slugify(name);
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-        DatabaseReference ref = db.getReference("admin/events").child(id);
         Event e = new Event();
         e.name = name;
-        ref.setValue(e);
-        eventName.getText().clear();
-        MainActivity.toast(getContext(), "Added event: "+name);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference eventRef = db.collection("nfc_events").document(name);
+        eventRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if (documentSnapshot.getData() != null) {
+                    MainActivity.toast(getContext(), name+" already exists.");
+                } else {
+                    db.collection("nfc_events").document(name).set(e)
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    eventName.getText().clear();
+                                    MainActivity.toast(getContext(), "Added event: "+name);
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            MainActivity.toast(getContext(), "Failed to add event: "+name);
+                        }
+                    });
+                }
+            }
+        });
     }
 
     @Override

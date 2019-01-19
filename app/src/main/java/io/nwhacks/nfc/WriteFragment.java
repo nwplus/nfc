@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothClass;
 import android.content.Intent;
 import android.os.Build;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,15 +12,25 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
 
 /**
  * Created by rice on 11/30/17.
@@ -30,11 +41,11 @@ public class WriteFragment extends NFCFragment {
     public static final int ERROR_COLOR = 0xFFFF0000;
     public static final int DEFAULT_COLOR = 0xFFFFFFFF;
 
-    private String android_id;
+    private String androidId;
     private String manufacturer = Build.MANUFACTURER;
     private String model = Build.MODEL;
     private TextView deviceInfo;
-    private TextView writeID;
+    private TextView writeId;
     private TextView writeName;
     private boolean loggedIn = false;
     private boolean created = false;
@@ -49,9 +60,9 @@ public class WriteFragment extends NFCFragment {
         // properly.
         rootView = inflater.inflate(R.layout.write_fragment, container, false);
         deviceInfo = rootView.findViewById(R.id.device_info);
-        writeID = rootView.findViewById(R.id.write_id);
+        writeId = rootView.findViewById(R.id.write_id);
         writeName = rootView.findViewById(R.id.write_name);
-        android_id = Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+        androidId = Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
         created = true;
         attemptInit();
         return rootView;
@@ -70,47 +81,39 @@ public class WriteFragment extends NFCFragment {
     }
 
     private void initView() {
-        deviceInfo.setText("Device ID: " + android_id + "\nManufacturer: "+manufacturer+"\nModel: "+model+"\nUser: "+user.getDisplayName()+"\nEmail: "+user.getEmail());
-
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-        final DatabaseReference ref = db.getReference("admin/devices").child(android_id);
-
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+        deviceInfo.setText("Device ID: " + androidId + "\nManufacturer: "+manufacturer+"\nModel: "+model+"\nEmail: "+user.getEmail());
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference deviceRef = db.collection("nfc_devices").document(androidId);
+        deviceRef.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        DeviceInfo di = documentSnapshot.toObject(DeviceInfo.class);
+                        if (di == null) {
+                            di = new DeviceInfo();
+                        }
+                        di.id = androidId;
+                        di.manufacturer = manufacturer;
+                        di.model = model;
+                        di.email = user.getEmail();
+                        deviceRef.set(di);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        MainActivity.toast(getContext(), e.getMessage());
+                    }
+                });
+        deviceRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                DeviceInfo di = dataSnapshot.getValue(DeviceInfo.class);
-                if (di == null) {
-                    di = new DeviceInfo();
+            public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
+                if (documentSnapshot != null && documentSnapshot.exists()) {
+                    DeviceInfo di = documentSnapshot.toObject(DeviceInfo.class);
+                    writeId.setText(di.writeId);
+                    writeName.setText(di.writeName);
+                    setColor(DEFAULT_COLOR);
                 }
-                di.id = android_id;
-                di.manufacturer = manufacturer;
-                di.model = model;
-                di.email = user.getEmail();
-                di.name = user.getDisplayName();
-                ref.setValue(di);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                MainActivity.toast(getContext(), databaseError.getMessage());
-            }
-        });
-
-        ref.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()) {
-                    return;
-                }
-                di = dataSnapshot.getValue(DeviceInfo.class);
-                writeID.setText(di.write_id);
-                writeName.setText(di.write_name);
-                setColor(DEFAULT_COLOR);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-              MainActivity.toast(getContext(), databaseError.getMessage());
             }
         });
     }
@@ -121,14 +124,23 @@ public class WriteFragment extends NFCFragment {
 
     @Override
     public void tagDiscovered(NFCManager mgr, Intent intent) {
-        if (di.write_id.length() == 0)
+        if (di.writeId.length() == 0)
             MainActivity.toast(getContext(), "No ID to write");
 
-        if (mgr.writeTagFromIntent(intent, di.write_id)){
+        if (mgr.writeTagFromIntent(intent, di.writeId)){
             MainActivity.toast(getContext(), "ID written to tag", 100);
-            FirebaseDatabase db = FirebaseDatabase.getInstance();
-            db.getReference("form/registration/" + di.write_id + "/nfc_written").setValue(true);
-            setColor(DEFAULT_COLOR);
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            DocumentReference applicant = db.collection("hacker_short_info").document(di.writeId);
+            applicant.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                @Override
+                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                    Hacker hacker = documentSnapshot.toObject(Hacker.class);
+                    if (hacker != null) {
+                        applicant.update("nfc_written", true);
+                        setColor(DEFAULT_COLOR);
+                    }
+                }
+            });
         } else {
             setColor(ERROR_COLOR);
         }
