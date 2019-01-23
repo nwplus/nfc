@@ -46,6 +46,7 @@ public class ReadFragment extends NFCFragment {
     public static final int WARNING_COLOR = 0xFFff8000;
     public static final int ERROR_COLOR = 0xFFFF0000;
     public static final int DEFAULT_COLOR = 0xFFFFFFFF;
+    public static final String EVENT_DROPDOWN_PLACEHOLDER = "Select an event...";
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -86,6 +87,7 @@ public class ReadFragment extends NFCFragment {
                 }
                 if (queryDocumentSnapshots != null) {
                     arguments = new ArrayList<>();
+                    arguments.add(EVENT_DROPDOWN_PLACEHOLDER);
                     for (DocumentSnapshot documentSnapshot: queryDocumentSnapshots.getDocuments()) {
                         Event event = documentSnapshot.toObject(Event.class);
                         arguments.add(event.name);
@@ -98,8 +100,13 @@ public class ReadFragment extends NFCFragment {
 
     @Override
     public void tagDiscovered(NFCManager mgr, Intent intent) {
-        ArrayList<String> records = mgr.readTagFromIntent(intent);
+        String selectedEvent = EventsFragment.formatEventName(events.getSelectedItem().toString());
+        if (selectedEvent.equals(EventsFragment.formatEventName(EVENT_DROPDOWN_PLACEHOLDER))){
+            MainActivity.toast(getContext(), "Please select an event first.");
+            return;
+        }
 
+        ArrayList<String> records = mgr.readTagFromIntent(intent);
         if (records.size() == 0) {
             MainActivity.toast(getContext(), "Tag is empty or not yet formatted.");
             setColor(ERROR_COLOR);
@@ -129,7 +136,6 @@ public class ReadFragment extends NFCFragment {
                             Hacker h = documentSnapshot.toObject(Hacker.class);
                             name.setText(h.firstName + " " + h.lastName);
                             email.setText(h.email);
-                            String selectedEvent = formatEventName(events.getSelectedItem().toString());
                             if (h.events == null) {
                                 h.events = new HashMap<String, Integer>();
                             }
@@ -178,10 +184,6 @@ public class ReadFragment extends NFCFragment {
             return true;
         }
         return false;
-    }
-
-    public String formatEventName(String event_name){
-        return event_name.replaceAll(" ", "_").toLowerCase();
     }
 
     private void setColor(int color) {

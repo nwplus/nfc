@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import com.google.common.base.CaseFormat;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -81,8 +82,14 @@ public class EventsFragment extends NFCFragment {
         });
     }
 
+    public static String formatEventName(String event_name){
+        event_name = event_name.toLowerCase().replace(" ", "_");
+        return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, event_name);
+    }
+
     public void addEvent() {
         String name = eventName.getText().toString();
+        String eventId = formatEventName(name);
         if (name.length() == 0) {
             MainActivity.toast(getContext(), "Invalid event name");
             return;
@@ -90,14 +97,14 @@ public class EventsFragment extends NFCFragment {
         Event e = new Event();
         e.name = name;
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference eventRef = db.collection("nfc_events").document(name);
+        DocumentReference eventRef = db.collection("nfc_events").document(eventId);
         eventRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if (documentSnapshot.getData() != null) {
                     MainActivity.toast(getContext(), name+" already exists");
                 } else {
-                    db.collection("nfc_events").document(name).set(e)
+                    eventRef.set(e)
                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {
