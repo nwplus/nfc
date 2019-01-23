@@ -77,15 +77,15 @@ public class WriteFragment extends NFCFragment {
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        DeviceInfo di = documentSnapshot.toObject(DeviceInfo.class);
-                        if (di == null) {
-                            di = new DeviceInfo();
+                        DeviceInfo deviceInfo = documentSnapshot.toObject(DeviceInfo.class);
+                        if (deviceInfo == null) {
+                            deviceInfo = new DeviceInfo();
                         }
-                        di.id = androidId;
-                        di.manufacturer = manufacturer;
-                        di.model = model;
-                        di.email = user.getEmail();
-                        deviceRef.set(di);
+                        deviceInfo.id = androidId;
+                        deviceInfo.manufacturer = manufacturer;
+                        deviceInfo.model = model;
+                        deviceInfo.email = user.getEmail();
+                        deviceRef.set(deviceInfo);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -98,7 +98,7 @@ public class WriteFragment extends NFCFragment {
             @Override
             public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
                 if (documentSnapshot != null && documentSnapshot.exists()) {
-                    DeviceInfo di = documentSnapshot.toObject(DeviceInfo.class);
+                    di = documentSnapshot.toObject(DeviceInfo.class);
                     writeId.setText(di.writeId);
                     writeName.setText(di.writeName);
                     setColor(DEFAULT_COLOR);

@@ -22,6 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -128,8 +129,10 @@ public class ReadFragment extends NFCFragment {
                             Hacker h = documentSnapshot.toObject(Hacker.class);
                             name.setText(h.firstName + " " + h.lastName);
                             email.setText(h.email);
-
                             String selectedEvent = formatEventName(events.getSelectedItem().toString());
+                            if (h.events == null) {
+                                h.events = new HashMap<String, Integer>();
+                            }
                             Integer checkInCount = h.events.get(selectedEvent);
                             if (checkInCount == null) {
                                 onEventJoin(id, selectedEvent, 0);
