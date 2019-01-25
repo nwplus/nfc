@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         fragmentsList.add(new ReadFragment());
         fragmentsList.add(new WriteFragment());
         fragmentsList.add(new EventsFragment());
+        fragmentsList.add(new ReadCoatCheckFragment());
 
 
         mViewPager.setAdapter(new MyFragmentPagerAdapter(getSupportFragmentManager(), fragmentsList));

@@ -12,6 +12,7 @@ public class ApplicantInfo {
     public String firstName;
     public String lastName;
     public String email;
+    public int coatCheckNumber;
     public Map<String, Integer> events;
     public static Map<String, String> applicantMap = ImmutableMap.of(
             "hacker", "hacker_short_info",
