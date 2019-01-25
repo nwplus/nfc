@@ -53,6 +53,7 @@ public class ReadCoatCheckFragment extends NFCFragment {
         email.setText("Email");
         id.setText("ID");
         applicantTypeText.setText("Applicant Type");
+        coatCheckNumber.setText("Coat Check #");
 
     }
 
