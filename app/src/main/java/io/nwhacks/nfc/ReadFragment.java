@@ -42,6 +42,7 @@ public class ReadFragment extends NFCFragment {
     private TextView name;
     private TextView email;
     private TextView id;
+    private TextView applicantTypeText;
     private View rootView;
     public static final int WARNING_COLOR = 0xFFff8000;
     public static final int ERROR_COLOR = 0xFFFF0000;
@@ -63,6 +64,7 @@ public class ReadFragment extends NFCFragment {
         allowUnlimited = rootView.findViewById(R.id.allowUnlimited);
         name = rootView.findViewById(R.id.name);
         email = rootView.findViewById(R.id.email);
+        applicantTypeText = rootView.findViewById(R.id.applicantType);
         id = rootView.findViewById(R.id.id);
         return rootView;
     }
@@ -133,6 +135,7 @@ public class ReadFragment extends NFCFragment {
         if (applicantCollection != null) {
             String id = records.get(0);
             this.id.setText(id);
+            applicantTypeText.setText(records.get(1));
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             DocumentReference applicant = db.collection(applicantCollection).document(id);
             applicant.get()
