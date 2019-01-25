@@ -107,9 +107,10 @@ public class WriteFragment extends NFCFragment {
                     if (di.writeApplicantType != null){
                         applicantCollection = ApplicantInfo.applicantMap.get(di.writeApplicantType);
                         writeType.setText(di.writeApplicantType);
+                        setColor(DEFAULT_COLOR);
                     }else{
-                        applicantCollection = "hacker_short_info";
-                        writeType.setText("hacker");
+                        MainActivity.toast(getContext(), "No ApplicantType for this applicant. Please check that you've selected an applicant.");
+                        setColor(ERROR_COLOR);
                     }
                     setColor(DEFAULT_COLOR);
                 }
