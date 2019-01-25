@@ -150,7 +150,7 @@ public class ReadFragment extends NFCFragment {
                             }
                             Integer checkInCount = h.events.get(selectedEvent);
                             if (checkInCount == null) {
-                                onEventJoin(id, selectedEvent, 0);
+                                onEventJoin(id, selectedEvent, 0, applicantCollection);
                                 MainActivity.toast(getContext(),"Checked user into event for first time!", 100);
                                 setColor(DEFAULT_COLOR);
                             } else {
