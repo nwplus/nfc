@@ -123,7 +123,7 @@ public class ReadFragment extends NFCFragment {
             sb.append("\n");
         }
         String applicantCollection;
-        if (records.get(1) != null){
+        if (records.size() > 1){
             applicantCollection = ApplicantInfo.applicantMap.get(records.get(1));
         }else{
             applicantCollection = "hacker_short_info";
