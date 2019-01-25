@@ -114,6 +114,7 @@ public class ReadCoatCheckFragment extends NFCFragment {
                     });
         }else {
             MainActivity.toast(getContext(), "No ApplicantType for this applicant. Please rewrite tag.");
+            resetDetailView();
             setColor(ERROR_COLOR);
         }
     }
