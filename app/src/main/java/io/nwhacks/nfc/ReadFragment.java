@@ -133,7 +133,7 @@ public class ReadFragment extends NFCFragment {
                     .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                         @Override
                         public void onSuccess(DocumentSnapshot documentSnapshot) {
-                            Hacker h = documentSnapshot.toObject(Hacker.class);
+                            ApplicantInfo h = documentSnapshot.toObject(ApplicantInfo.class);
                             name.setText(h.firstName + " " + h.lastName);
                             email.setText(h.email);
                             if (h.events == null) {
