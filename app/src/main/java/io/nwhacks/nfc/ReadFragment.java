@@ -154,7 +154,7 @@ public class ReadFragment extends NFCFragment {
                                 MainActivity.toast(getContext(),"Checked user into event for first time!", 100);
                                 setColor(DEFAULT_COLOR);
                             } else {
-                                boolean result = onEventJoin(id, selectedEvent, checkInCount);
+                                boolean result = onEventJoin(id, selectedEvent, checkInCount, applicantCollection);
                                 if (result) {
                                     MainActivity.toast(getContext(), "Checked user into event!", 100);
                                     setColor(DEFAULT_COLOR);
@@ -175,6 +175,7 @@ public class ReadFragment extends NFCFragment {
                     });
         }else {
             MainActivity.toast(getContext(), "No ApplicantType for this applicant. Please rewrite tag.");
+            resetDetailView();
             setColor(ERROR_COLOR);
         }
     }
@@ -186,12 +187,12 @@ public class ReadFragment extends NFCFragment {
     }
 
     /* Write event attendance to participant in database - returns true if user can join event */
-    public Boolean onEventJoin(String id, String event_name, Integer checkInCount){
+    public Boolean onEventJoin(String id, String event_name, Integer checkInCount, String applicantCollection){
         if ( allowUnlimited.isChecked()
                 || (checkInCount+1 == 2 && allowSeconds.isChecked())
                 || checkInCount+1 < 2) {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
-            DocumentReference applicant = db.collection("hacker_short_info").document(id);
+            DocumentReference applicant = db.collection(applicantCollection).document(id);
             applicant.update("events."+event_name, checkInCount + 1);
             return true;
         }
