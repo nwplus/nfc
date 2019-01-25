@@ -36,6 +36,7 @@ public class WriteFragment extends NFCFragment {
     private TextView deviceInfo;
     private TextView writeId;
     private TextView writeName;
+    private TextView writeType;
     private boolean loggedIn = false;
     private boolean created = false;
     private FirebaseUser user;
@@ -52,6 +53,7 @@ public class WriteFragment extends NFCFragment {
         deviceInfo = rootView.findViewById(R.id.device_info);
         writeId = rootView.findViewById(R.id.write_id);
         writeName = rootView.findViewById(R.id.write_name);
+        writeType = rootView.findViewById(R.id.write_type);
         androidId = Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
         created = true;
         attemptInit();
@@ -104,6 +106,7 @@ public class WriteFragment extends NFCFragment {
                     writeName.setText(di.writeName);
                     if (di.writeApplicantType != null){
                         applicantCollection = ApplicantInfo.applicantMap.get(di.writeApplicantType);
+                        writeType.setText(di.writeApplicantType);
                         setColor(DEFAULT_COLOR);
                     }else{
                         MainActivity.toast(getContext(), "No ApplicantType for this applicant. Please check that you've selected an applicant.");
