@@ -174,7 +174,7 @@ public class ReadFragment extends NFCFragment {
                         }
                     });
         }else {
-            MainActivity.toast(getContext(), "No ApplicantType for this applicant. Please rewrite id.");
+            MainActivity.toast(getContext(), "No ApplicantType for this applicant. Please rewrite tag.");
             setColor(ERROR_COLOR);
         }
     }
