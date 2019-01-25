@@ -11,6 +11,12 @@ public class ApplicantInfo {
     public String lastName;
     public String email;
     public Map<String, Integer> events;
+    public static Map<String, String> applicantMap;
 
+    static {
+        applicantMap.put("hacker", "hacker_short_info");
+        applicantMap.put("volunteer", "volunteer_short_info");
+        applicantMap.put("mentor", "mentor_short_info");
+    }
     public ApplicantInfo() {}
 }

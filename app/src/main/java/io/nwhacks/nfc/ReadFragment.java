@@ -122,13 +122,19 @@ public class ReadFragment extends NFCFragment {
             sb.append(records.get(i));
             sb.append("\n");
         }
+        String applicantCollection;
+        if (records.get(1) != null){
+            applicantCollection = ApplicantInfo.applicantMap.get(records.get(1));
+        }else{
+            applicantCollection = "hacker_short_info";
+        }
         String body = sb.toString();
         recordDisplay.setText(body);
         if (records.size() > 0) {
             String id = records.get(0);
             this.id.setText(id);
             FirebaseFirestore db = FirebaseFirestore.getInstance();
-            DocumentReference applicant = db.collection("hacker_short_info").document(id);
+            DocumentReference applicant = db.collection(applicantCollection).document(id);
             applicant.get()
                     .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                         @Override

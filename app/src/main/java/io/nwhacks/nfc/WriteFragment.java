@@ -105,17 +105,7 @@ public class WriteFragment extends NFCFragment {
                     writeId.setText(di.writeId);
                     writeName.setText(di.writeName);
                     if (di.writeApplicantType != null){
-                        switch (di.writeApplicantType){
-                            case "hacker":
-                                applicantCollection = "hacker_short_info";
-                                break;
-                            case "volunteer":
-                                applicantCollection = "volunteer_short_info";
-                                break;
-                            case "mentor":
-                                applicantCollection = "mentor_short_info";
-                                break;
-                        }
+                        applicantCollection = ApplicantInfo.applicantMap.get(di.writeApplicantType);
                         writeType.setText(di.writeApplicantType);
                     }else{
                         applicantCollection = "hacker_short_info";
