@@ -126,13 +126,11 @@ public class ReadFragment extends NFCFragment {
         if (records.size() > 1){
             applicantCollection = ApplicantInfo.applicantMap.get(records.get(1));
         }else{
-            MainActivity.toast(getContext(), "No ApplicantType for this applicant. Please rewrite id.");
-            setColor(ERROR_COLOR);
             applicantCollection = null;
         }
         String body = sb.toString();
         recordDisplay.setText(body);
-        if (records.size() > 0 && applicantCollection != null) {
+        if (applicantCollection != null) {
             String id = records.get(0);
             this.id.setText(id);
             FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -172,6 +170,9 @@ public class ReadFragment extends NFCFragment {
                             resetDetailView();
                         }
                     });
+        }else {
+            MainActivity.toast(getContext(), "No ApplicantType for this applicant. Please rewrite id.");
+            setColor(ERROR_COLOR);
         }
     }
 
