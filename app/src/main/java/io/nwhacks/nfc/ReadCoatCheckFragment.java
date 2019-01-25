@@ -101,6 +101,7 @@ public class ReadCoatCheckFragment extends NFCFragment {
                                 coatCheckNumber.setText(Integer.toString(h.coatCheckNumber));
                             }else{
                                 MainActivity.toast(getContext(), "No coat check number found for applicant");
+                                coatCheckNumber.setText("Coat Check #");
                                 setColor(WARNING_COLOR);
                             }
                         }
