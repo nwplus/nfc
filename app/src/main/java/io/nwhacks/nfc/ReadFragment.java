@@ -43,7 +43,6 @@ public class ReadFragment extends NFCFragment {
     private TextView email;
     private TextView id;
     private TextView applicantTypeText;
-    private View rootView;
     public static final int WARNING_COLOR = 0xFFff8000;
     public static final int ERROR_COLOR = 0xFFFF0000;
     public static final int DEFAULT_COLOR = 0xFFFFFFFF;
@@ -199,7 +198,5 @@ public class ReadFragment extends NFCFragment {
         return false;
     }
 
-    private void setColor(int color) {
-        rootView.setBackgroundColor(color);
-    }
+
 }

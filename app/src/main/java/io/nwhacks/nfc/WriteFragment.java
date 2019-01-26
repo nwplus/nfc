@@ -41,7 +41,6 @@ public class WriteFragment extends NFCFragment {
     private boolean created = false;
     private FirebaseUser user;
     private DeviceInfo di;
-    private View rootView;
     private String applicantCollection;
 
     @Override
@@ -118,9 +117,6 @@ public class WriteFragment extends NFCFragment {
         });
     }
 
-    private void setColor(int color) {
-        rootView.setBackgroundColor(color);
-    }
 
     @Override
     public void tagDiscovered(NFCManager mgr, Intent intent) {
