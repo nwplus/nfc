@@ -99,8 +99,9 @@ public class ReadCoatCheckFragment extends NFCFragment {
                             email.setText(h.email);
                             if (h.coatCheckNumber > 0){
                                 coatCheckNumber.setText(Integer.toString(h.coatCheckNumber));
+                                MainActivity.toast(getContext(), "Successfully retrieved coat check number.", 100);
                             }else{
-                                MainActivity.toast(getContext(), "No coat check number found for applicant");
+                                MainActivity.toast(getContext(), "No coat check number found for applicant.");
                                 coatCheckNumber.setText("Coat Check #");
                                 setColor(WARNING_COLOR);
                             }
