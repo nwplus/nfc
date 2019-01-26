@@ -69,7 +69,7 @@ public class EventsFragment extends NFCFragment {
         db.collection("nfc_events").addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                if(!queryDocumentSnapshots.isEmpty()){
+                if(queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()){
                     List<DocumentSnapshot> docs = queryDocumentSnapshots.getDocuments();
                     arguments = new ArrayList<>();
                     for(DocumentSnapshot eventDoc : docs){

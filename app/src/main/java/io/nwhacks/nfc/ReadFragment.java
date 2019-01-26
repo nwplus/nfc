@@ -42,6 +42,7 @@ public class ReadFragment extends NFCFragment {
     private TextView name;
     private TextView email;
     private TextView id;
+    private TextView applicantTypeText;
     private View rootView;
     public static final int WARNING_COLOR = 0xFFff8000;
     public static final int ERROR_COLOR = 0xFFFF0000;
@@ -63,6 +64,7 @@ public class ReadFragment extends NFCFragment {
         allowUnlimited = rootView.findViewById(R.id.allowUnlimited);
         name = rootView.findViewById(R.id.name);
         email = rootView.findViewById(R.id.email);
+        applicantTypeText = rootView.findViewById(R.id.applicantType);
         id = rootView.findViewById(R.id.id);
         return rootView;
     }
@@ -122,18 +124,25 @@ public class ReadFragment extends NFCFragment {
             sb.append(records.get(i));
             sb.append("\n");
         }
+        String applicantCollection;
+        if (records.size() > 1){
+            applicantCollection = ApplicantInfo.applicantMap.get(records.get(1));
+        }else{
+            applicantCollection = null;
+        }
         String body = sb.toString();
         recordDisplay.setText(body);
-        if (records.size() > 0) {
+        if (applicantCollection != null) {
             String id = records.get(0);
             this.id.setText(id);
+            applicantTypeText.setText(records.get(1));
             FirebaseFirestore db = FirebaseFirestore.getInstance();
-            DocumentReference applicant = db.collection("hacker_short_info").document(id);
+            DocumentReference applicant = db.collection(applicantCollection).document(id);
             applicant.get()
                     .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                         @Override
                         public void onSuccess(DocumentSnapshot documentSnapshot) {
-                            Hacker h = documentSnapshot.toObject(Hacker.class);
+                            ApplicantInfo h = documentSnapshot.toObject(ApplicantInfo.class);
                             name.setText(h.firstName + " " + h.lastName);
                             email.setText(h.email);
                             if (h.events == null) {
@@ -141,11 +150,11 @@ public class ReadFragment extends NFCFragment {
                             }
                             Integer checkInCount = h.events.get(selectedEvent);
                             if (checkInCount == null) {
-                                onEventJoin(id, selectedEvent, 0);
+                                onEventJoin(id, selectedEvent, 0, applicantCollection);
                                 MainActivity.toast(getContext(),"Checked user into event for first time!", 100);
                                 setColor(DEFAULT_COLOR);
                             } else {
-                                boolean result = onEventJoin(id, selectedEvent, checkInCount);
+                                boolean result = onEventJoin(id, selectedEvent, checkInCount, applicantCollection);
                                 if (result) {
                                     MainActivity.toast(getContext(), "Checked user into event!", 100);
                                     setColor(DEFAULT_COLOR);
@@ -164,6 +173,10 @@ public class ReadFragment extends NFCFragment {
                             resetDetailView();
                         }
                     });
+        }else {
+            MainActivity.toast(getContext(), "No ApplicantType for this applicant. Please rewrite tag.");
+            resetDetailView();
+            setColor(ERROR_COLOR);
         }
     }
 
@@ -174,12 +187,12 @@ public class ReadFragment extends NFCFragment {
     }
 
     /* Write event attendance to participant in database - returns true if user can join event */
-    public Boolean onEventJoin(String id, String event_name, Integer checkInCount){
+    public Boolean onEventJoin(String id, String event_name, Integer checkInCount, String applicantCollection){
         if ( allowUnlimited.isChecked()
                 || (checkInCount+1 == 2 && allowSeconds.isChecked())
                 || checkInCount+1 < 2) {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
-            DocumentReference applicant = db.collection("hacker_short_info").document(id);
+            DocumentReference applicant = db.collection(applicantCollection).document(id);
             applicant.update("events."+event_name, checkInCount + 1);
             return true;
         }

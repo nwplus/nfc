@@ -36,11 +36,13 @@ public class WriteFragment extends NFCFragment {
     private TextView deviceInfo;
     private TextView writeId;
     private TextView writeName;
+    private TextView writeType;
     private boolean loggedIn = false;
     private boolean created = false;
     private FirebaseUser user;
     private DeviceInfo di;
     private View rootView;
+    private String applicantCollection;
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -51,6 +53,7 @@ public class WriteFragment extends NFCFragment {
         deviceInfo = rootView.findViewById(R.id.device_info);
         writeId = rootView.findViewById(R.id.write_id);
         writeName = rootView.findViewById(R.id.write_name);
+        writeType = rootView.findViewById(R.id.write_type);
         androidId = Settings.Secure.getString(getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
         created = true;
         attemptInit();
@@ -101,6 +104,14 @@ public class WriteFragment extends NFCFragment {
                     di = documentSnapshot.toObject(DeviceInfo.class);
                     writeId.setText(di.writeId);
                     writeName.setText(di.writeName);
+                    if (di.writeApplicantType != null){
+                        applicantCollection = ApplicantInfo.applicantMap.get(di.writeApplicantType);
+                        writeType.setText(di.writeApplicantType);
+                        setColor(DEFAULT_COLOR);
+                    }else{
+                        MainActivity.toast(getContext(), "No ApplicantType for this applicant. Please check that you've selected an applicant.");
+                        setColor(ERROR_COLOR);
+                    }
                     setColor(DEFAULT_COLOR);
                 }
             }
@@ -116,15 +127,15 @@ public class WriteFragment extends NFCFragment {
         if (di.writeId.length() == 0)
             MainActivity.toast(getContext(), "No ID to write");
 
-        if (mgr.writeTagFromIntent(intent, di.writeId)){
+        if (mgr.writeTagFromIntent(intent, new String[]{di.writeId, di.writeApplicantType})){
             MainActivity.toast(getContext(), "ID written to tag", 100);
             FirebaseFirestore db = FirebaseFirestore.getInstance();
-            DocumentReference applicant = db.collection("hacker_short_info").document(di.writeId);
+            DocumentReference applicant = db.collection(applicantCollection).document(di.writeId);
             applicant.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                 @Override
                 public void onSuccess(DocumentSnapshot documentSnapshot) {
-                    Hacker hacker = documentSnapshot.toObject(Hacker.class);
-                    if (hacker != null) {
+                    ApplicantInfo applicantInfo = documentSnapshot.toObject(ApplicantInfo.class);
+                    if (applicantInfo != null) {
                         applicant.update("nfc_written", true);
                         setColor(DEFAULT_COLOR);
                     }

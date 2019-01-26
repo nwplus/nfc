@@ -36,9 +36,21 @@ public class NFCManager {
         return readTag(tag);
     }
 
+    public boolean writeTagFromIntent(Intent intent, String[] messages){
+        Tag tag = getTagFromIntent(intent);
+        NdefMessage payload = createTextMessage(messages);
+
+        try {
+            writeTag(tag, payload);
+            return true;
+        } catch (Exception e){
+            MainActivity.toast(activity.getApplicationContext(), "Failed to write to invalid or unformatted tag.");
+            return false;
+        }
+    }
     public boolean writeTagFromIntent(Intent intent, String message){
         Tag tag = getTagFromIntent(intent);
-        NdefMessage payload = createTextMessage(message);
+        NdefMessage payload = createTextMessage(new String[]{message});
 
         try {
             writeTag(tag, payload);
@@ -83,22 +95,25 @@ public class NFCManager {
     }
 
     /* Create and return a text record to write to an NFC tag. */
-    NdefMessage createTextMessage(String message) {
-        try {
-            byte[] messageBytes = message.getBytes("UTF-8");
-            ByteArrayOutputStream payload = new ByteArrayOutputStream(messageBytes.length);
-            payload.write(messageBytes, 0, messageBytes.length);
-
-            NdefRecord record = new NdefRecord(
-                    NdefRecord.TNF_WELL_KNOWN,
-                    NdefRecord.RTD_TEXT,
-                    new byte[0],
-                    payload.toByteArray());
-
-            return new NdefMessage(new NdefRecord[]{record});
-        } catch (Exception e){
-            return null;
+    NdefMessage createTextMessage(String[] messages) {
+        NdefRecord[] records = new NdefRecord[messages.length];
+        for (int i = 0; i < messages.length; i++){
+            try {
+                String message = messages[i];
+                byte[] messageBytes = message.getBytes("UTF-8");
+                ByteArrayOutputStream payload = new ByteArrayOutputStream(messageBytes.length);
+                payload.write(messageBytes, 0, messageBytes.length);
+                NdefRecord record = new NdefRecord(
+                        NdefRecord.TNF_WELL_KNOWN,
+                        NdefRecord.RTD_TEXT,
+                        new byte[0],
+                        payload.toByteArray());
+                records[i] = record;
+            } catch (Exception e){
+                return null;
+            }
         }
+        return new NdefMessage(records);
     }
 
     /* Write given message to given NFC tag. */

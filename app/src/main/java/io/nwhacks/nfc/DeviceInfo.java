@@ -13,6 +13,7 @@ public class DeviceInfo {
     public String email;
     public String writeName;
     public String writeId;
+    public String writeApplicantType;
 
     DeviceInfo() {
 
