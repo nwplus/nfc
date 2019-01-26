@@ -132,7 +132,8 @@ public class WriteFragment extends NFCFragment {
                 public void onSuccess(DocumentSnapshot documentSnapshot) {
                     ApplicantInfo applicantInfo = documentSnapshot.toObject(ApplicantInfo.class);
                     if (applicantInfo != null) {
-                        applicant.update("nfc_written", true);
+                        applicant.update("nfcWritten", true);
+                        applicant.update("tags.checked-in", true);
                         setColor(DEFAULT_COLOR);
                     }
                 }
